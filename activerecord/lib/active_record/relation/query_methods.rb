@@ -410,6 +410,29 @@ module ActiveRecord
       self
     end
 
+    # Defines an default order which will be used by default if no other order is defined.
+    #
+    #   User.default_order('email DESC') # generated SQL has 'ORDER BY email DESC'
+    #
+    # Subsequent calls to order on the same relation will be appended. For example:
+    #
+    #   User.default_order('email DESC').order('id ASC').order('name ASC')
+    #
+    # generates a query with 'ORDER BY id ASC, name ASC'.
+    def default_order(*args)
+      check_if_method_has_arguments!(:default_order, args) do
+        sanitize_order_arguments(args) unless args.all?(&:blank?)
+      end
+      spawn.default_order!(*args)
+    end
+
+    # Same as #default_order but operates on relation in-place instead of copying.
+    def default_order!(*args) # :nodoc:
+      preprocess_order_args(args) unless args.all?(&:blank?)
+      self.default_order_values = args
+      self
+    end
+
     VALID_UNSCOPING_VALUES = Set.new([:where, :select, :group, :order, :lock,
                                      :limit, :offset, :joins, :left_outer_joins, :annotate,
                                      :includes, :from, :readonly, :having, :optimizer_hints])
@@ -1388,6 +1411,11 @@ module ActiveRecord
       def build_order(arel)
         orders = order_values.uniq
         orders.compact_blank!
+
+        if orders.empty?
+          orders = default_order_values.uniq
+          orders.compact_blank!
+        end
 
         arel.order(*orders) unless orders.empty?
       end
