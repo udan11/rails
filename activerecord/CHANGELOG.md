@@ -1,3 +1,24 @@
+*   Add `#default_order` query method and association option to define an default order which will be used by default if no other order is defined.
+
+    This extends the functionality offered by `#default_order_column` to scopes and associations.
+
+    Usage:
+
+    ```ruby
+    class Post < ApplicationRecord
+      has_many :comments, default_order: :likes
+      # .. or ..
+      has_many :comments, -> { default_order(:likes) }
+    end
+
+    post = Post.first
+
+    post.comments # emails ordered by `likes`
+    post.comments.order(:created_at) # emails ordered by `created_at`
+    ```
+
+    *Dan Ungureanu*
+
 *   Deprecate YAML loading from legacy format older than Rails 5.0.
 
     *Ryuta Kamizono*
