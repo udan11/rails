@@ -76,7 +76,7 @@ class Post < ActiveRecord::Base
     end
   end
 
-  has_many :ordered_comments, -> { default_order(:body) }, class_name: "Comment"
+  has_many :ordered_comments, class_name: "Comment", default_order: :body
 
   has_many :comments_with_extend, extend: NamedExtension, class_name: "Comment", foreign_key: "post_id" do
     def greeting
